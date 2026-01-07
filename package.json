@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate-media-index": "node scripts/generate-media-index.js",
+    "prebuild": "npm run generate-media-index",
     "build": "tsc && vite build",
+    "prebuild:gh": "npm run generate-media-index",
     "build:gh": "cross-env GITHUB_PAGES=true tsc && vite build",
     "preview": "vite preview",
     "deploy": "gh-pages -d dist"

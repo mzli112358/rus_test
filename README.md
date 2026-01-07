@@ -350,5 +350,3 @@ npm run build
 ```
 构建产物在 `dist` 目录，可以部署到服务器或 GitHub Pages。
 
-更多详细信息请查看 `SETUP.md` 文件。
-

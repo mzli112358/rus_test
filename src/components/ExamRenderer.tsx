@@ -2,7 +2,79 @@ import { useEffect, useState } from 'react';
 import { mapAudioPath, isVideoFile } from '../utils/fileMapper';
 
 // 用简单的正则切分内容
-const REGEX = /(\[\[AUDIO:.*?\]\]|\[\[INPUT:.*?\]\]|\[\[RADIO:.*?\]\])/g;
+const REGEX = /(\[\[AUDIO:.*?\]\]|\[\[INPUT:.*?\]\]|\[\[RADIO:.*?\]\])/gs;
+
+// 音频播放器组件（处理异步路径加载）
+function AudioPlayer({ src, isVideo }: { src: string; isVideo: boolean }) {
+  const [actualPath, setActualPath] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    mapAudioPath(src)
+      .then(path => {
+        setActualPath(path);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to map audio path:', src, err);
+        setLoading(false);
+      });
+  }, [src]);
+
+  if (loading) {
+    return (
+      <div className="my-4 p-3 bg-gray-50 rounded border border-gray-200">
+        <p className="text-sm text-gray-500 mb-1">加载中...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="my-4 p-3 bg-gray-50 rounded border border-gray-200">
+      <p className="text-sm text-gray-500 mb-1">
+        {isVideo ? '视频' : '音频'}: {src}
+      </p>
+      {isVideo ? (
+        <div className="space-y-2">
+          <video 
+            controls 
+            src={actualPath} 
+            className="w-full rounded"
+            onError={(e) => {
+              console.error('Video load error:', actualPath, e);
+            }}
+          />
+          <audio 
+            controls 
+            src={actualPath} 
+            className="w-full"
+            onError={(e) => {
+              console.error('Audio load error:', actualPath, e);
+            }}
+          />
+          <p className="text-xs text-gray-400">提示：上方为视频播放器，下方为纯音频播放器</p>
+        </div>
+      ) : (
+        <audio 
+          controls 
+          src={actualPath} 
+          className="w-full"
+          onError={(e) => {
+            console.error('Audio load error:', actualPath, 'Original path:', src);
+            const target = e.target as HTMLAudioElement;
+            const parent = target.closest('.my-4');
+            if (parent) {
+              const errorMsg = document.createElement('p');
+              errorMsg.className = 'text-xs text-red-600 mt-1';
+              errorMsg.textContent = `加载失败: ${actualPath}`;
+              parent.appendChild(errorMsg);
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
 
 interface AnswerItem {
   id: string;
@@ -86,59 +158,9 @@ export default function ExamRenderer({ paperId }: { paperId: string }) {
         const match = part.match(/\[\[AUDIO:(.*?)\]\]/s);
         const src = match?.[1]?.trim();
         if (!src) return null;
-        const actualPath = mapAudioPath(src);
         const isVideo = isVideoFile(src);
-
-        return (
-          <div key={index} className="my-4 p-3 bg-gray-50 rounded border border-gray-200">
-            <p className="text-sm text-gray-500 mb-1">
-              {isVideo ? '视频' : '音频'}: {src}
-            </p>
-            {isVideo ? (
-              <div className="space-y-2">
-                <video 
-                  controls 
-                  src={actualPath} 
-                  className="w-full rounded"
-                  onError={(e) => {
-                    console.error('Video load error:', actualPath, e);
-                    const target = e.target as HTMLVideoElement;
-                    target.nextElementSibling?.classList.add('border-red-500');
-                  }}
-                />
-                <audio 
-                  controls 
-                  src={actualPath} 
-                  className="w-full"
-                  onError={(e) => {
-                    console.error('Audio load error:', actualPath, e);
-                  }}
-                />
-                <p className="text-xs text-gray-400">提示：上方为视频播放器，下方为纯音频播放器</p>
-              </div>
-            ) : (
-              <audio 
-                controls 
-                src={actualPath} 
-                className="w-full"
-                onError={(e) => {
-                  console.error('Audio load error:', actualPath, 'Original path:', src);
-                  const target = e.target as HTMLAudioElement;
-                  const parent = target.closest('.my-4');
-                  if (parent) {
-                    const errorMsg = document.createElement('p');
-                    errorMsg.className = 'text-xs text-red-600 mt-1';
-                    errorMsg.textContent = `加载失败: ${actualPath}`;
-                    parent.appendChild(errorMsg);
-                  }
-                }}
-                onLoadStart={() => {
-                  console.log('Audio loading:', actualPath);
-                }}
-              />
-            )}
-          </div>
-        );
+        
+        return <AudioPlayer key={index} src={src} isVideo={isVideo} />;
       }
 
       // 渲染填空输入框
