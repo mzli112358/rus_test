@@ -80,7 +80,8 @@ export default function ExamRenderer({ paperId }: { paperId: string }) {
     return parts.map((part, index) => {
       // 渲染音频/视频
       if (part.startsWith('[[AUDIO:')) {
-        const src = part.match(/\[\[AUDIO:(.*?)\]\]/)?.[1].trim();
+        const src = part.match(/\[\[AUDIO:(.*?)\]\]/)?.[1]?.trim();
+        if (!src) return null;
         const actualPath = mapAudioPath(src);
         const isVideo = isVideoFile(src);
 
