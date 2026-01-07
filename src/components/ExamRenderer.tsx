@@ -110,23 +110,42 @@ export default function ExamRenderer({ paperId }: { paperId: string }) {
         const id = part.match(/\[\[INPUT:(.*?)\]\]/)?.[1].trim();
         if (!id) return null;
         const correct = answers[id]?.answer;
+        // 判断是否是第四部分的题目（q4_开头），使用多行输入框
+        const isPart4 = id.startsWith('q4_');
         
         return (
           <div key={index} className="my-2">
-            <input
-              type="text"
-              className={`w-full p-2 border rounded ${
-                isGraded 
-                  ? (userInputs[id]?.trim() === correct?.trim() 
-                      ? 'border-green-500 bg-green-50' 
-                      : 'border-red-500 bg-red-50')
-                  : 'border-gray-300'
-              }`}
-              placeholder="请输入俄语答案..."
-              value={userInputs[id] || ''}
-              onChange={(e) => setUserInputs({ ...userInputs, [id]: e.target.value })}
-              disabled={isGraded}
-            />
+            {isPart4 ? (
+              <textarea
+                className={`w-full p-2 border rounded min-h-[100px] resize-y ${
+                  isGraded 
+                    ? (userInputs[id]?.trim() === correct?.trim() 
+                        ? 'border-green-500 bg-green-50' 
+                        : 'border-red-500 bg-red-50')
+                    : 'border-gray-300'
+                }`}
+                placeholder="请输入俄语答案..."
+                value={userInputs[id] || ''}
+                onChange={(e) => setUserInputs({ ...userInputs, [id]: e.target.value })}
+                disabled={isGraded}
+                rows={3}
+              />
+            ) : (
+              <input
+                type="text"
+                className={`w-full p-2 border rounded ${
+                  isGraded 
+                    ? (userInputs[id]?.trim() === correct?.trim() 
+                        ? 'border-green-500 bg-green-50' 
+                        : 'border-red-500 bg-red-50')
+                    : 'border-gray-300'
+                }`}
+                placeholder="请输入俄语答案..."
+                value={userInputs[id] || ''}
+                onChange={(e) => setUserInputs({ ...userInputs, [id]: e.target.value })}
+                disabled={isGraded}
+              />
+            )}
             {isGraded && userInputs[id]?.trim() !== correct?.trim() && (
               <p className="text-sm text-red-600 mt-1">
                 正确答案: <span className="font-bold">{correct}</span>
@@ -246,7 +265,7 @@ export default function ExamRenderer({ paperId }: { paperId: string }) {
   const score = isGraded ? calculateScore() : null;
 
   return (
-    <div className="bg-white shadow-lg rounded-xl p-4 sm:p-6 min-h-screen max-w-4xl mx-auto">
+    <div className="bg-white shadow-lg rounded-xl p-6 min-h-screen max-w-4xl mx-auto">
       {renderContent()}
       
       <div className="mt-8 pt-4 border-t border-gray-200">
