@@ -22,7 +22,9 @@ export default function ExamRenderer({ paperId }: { paperId: string }) {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch(`/exams/${paperId}.md`)
+    // 使用相对路径或根据环境变量调整
+    const basePath = import.meta.env.BASE_URL || '';
+    fetch(`${basePath}exams/${paperId}.md`)
       .then(res => {
         if (!res.ok) {
           throw new Error(`无法加载考卷: ${paperId}.md`);
@@ -244,7 +246,7 @@ export default function ExamRenderer({ paperId }: { paperId: string }) {
   const score = isGraded ? calculateScore() : null;
 
   return (
-    <div className="bg-white shadow-lg rounded-xl p-6 min-h-screen">
+    <div className="bg-white shadow-lg rounded-xl p-4 sm:p-6 min-h-screen max-w-4xl mx-auto">
       {renderContent()}
       
       <div className="mt-8 pt-4 border-t border-gray-200">
