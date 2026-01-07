@@ -96,12 +96,46 @@ export default function ExamRenderer({ paperId }: { paperId: string }) {
             </p>
             {isVideo ? (
               <div className="space-y-2">
-                <video controls src={actualPath} className="w-full rounded" />
-                <audio controls src={actualPath} className="w-full" />
+                <video 
+                  controls 
+                  src={actualPath} 
+                  className="w-full rounded"
+                  onError={(e) => {
+                    console.error('Video load error:', actualPath, e);
+                    const target = e.target as HTMLVideoElement;
+                    target.nextElementSibling?.classList.add('border-red-500');
+                  }}
+                />
+                <audio 
+                  controls 
+                  src={actualPath} 
+                  className="w-full"
+                  onError={(e) => {
+                    console.error('Audio load error:', actualPath, e);
+                  }}
+                />
                 <p className="text-xs text-gray-400">提示：上方为视频播放器，下方为纯音频播放器</p>
               </div>
             ) : (
-              <audio controls src={actualPath} className="w-full" />
+              <audio 
+                controls 
+                src={actualPath} 
+                className="w-full"
+                onError={(e) => {
+                  console.error('Audio load error:', actualPath, 'Original path:', src);
+                  const target = e.target as HTMLAudioElement;
+                  const parent = target.closest('.my-4');
+                  if (parent) {
+                    const errorMsg = document.createElement('p');
+                    errorMsg.className = 'text-xs text-red-600 mt-1';
+                    errorMsg.textContent = `加载失败: ${actualPath}`;
+                    parent.appendChild(errorMsg);
+                  }
+                }}
+                onLoadStart={() => {
+                  console.log('Audio loading:', actualPath);
+                }}
+              />
             )}
           </div>
         );
